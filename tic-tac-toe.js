@@ -5,16 +5,29 @@ document.addEventListener("DOMContentLoaded", () => {
     let squareValues = blankBoard;
     let forcedWinner = null;
     const winningCombos = ['012','345', '678', '036', '147', '258', '048', '246'];
+    let compSide;
+    let randomizeCompSide = () => {
+        let random = Math.ceil(Math.random() * 2);
+        if (random === 1) {
+            compSide = "X";
+        } else {
+            compSide = "O";
+        }
+    }
+    randomizeCompSide();
     loadGame();
 
     document.getElementById("new-game-button").disabled = true;
 
 
     function updateStatus (winner) {
-        if (winner) document.getElementById("game-status").innerHTML = `Winner: ${winner}`;
-        document.getElementById("new-game-button").disabled = false;
-        document.getElementById("give-up-button").disabled = true;
-        if (!winner) document.getElementById("give-up-button").disabled = false;
+        if (winner) {
+            document.getElementById("game-status").innerHTML = `Winner: ${winner}`;
+            document.getElementById("new-game-button").disabled = false;
+            document.getElementById("give-up-button").disabled = true;
+        } else {
+            document.getElementById("give-up-button").disabled = false;
+        }
     }
 
     function saveGame() {
@@ -40,7 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
         let loadedTurn = localStorage.getItem("turn");
         if (loadedTurn) xsTurn = JSON.parse(loadedTurn);
         updateStatus(getWinner(squareValues));
-
+        if ((xsTurn && compSide === "X") || (!xsTurn && compSide === "O")) {
+            compTurn();
+        }
     }
 
     let boardEvent = event =>{
@@ -62,11 +77,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         saveGame();
         let winner = getWinner(squareValues);
-        console.log(winner);
-        if (winner) {
-            updateStatus(winner);
-        }
+        // console.log(winner);
+        updateStatus(winner);
+        compTurn();
     }
+
 
     board.addEventListener("click", boardEvent);
 
@@ -77,12 +92,18 @@ document.addEventListener("DOMContentLoaded", () => {
             squareValues[i] = null;
         }
         document.getElementById("game-status").innerHTML = "";
-        xsTurn = true;
         forcedWinner = null;
         document.getElementById("give-up-button").disabled = false;
         document.getElementById("new-game-button").disabled = true;
+        randomizeCompSide();
+        xsTurn = true;
+        if (compSide === "X"){
+            compTurn();
+        }
         saveGame();
         // squareValues = blankBoard;
+
+
     })
 
     document.getElementById("give-up-button").addEventListener("click", event => {
@@ -110,12 +131,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (winner) {
             return winner;
-            document.getElementById("give-up-button").disabled = true;
+            //this code was unreachable: document.getElementById("give-up-button").disabled = true;
         }
         else if (!squares.includes(null)) {
             return "None";
         } else {
             return false;
         }
+    }
+
+    function compTurn () {
+        if (getWinner(squareValues)) return undefined;
+        let nullCount = squareValues.filter(el => !el).length;
+        let chosenNull = Math.ceil(Math.random() * nullCount);
+        console.log(chosenNull);
+        let nullCounter = 0;
+        for (i = 0; i < squareValues.length; i++) {
+            if (!squareValues[i]) {
+                nullCounter ++;
+                if (nullCounter === chosenNull) {
+                    console.log(i);
+                    squareValues[i] = compSide;
+                    let targetSquare = document.getElementById(`square-${i}`);
+                    targetSquare.style.backgroundImage = `url('player-${compSide.toLowerCase()}.svg')`;
+                    xsTurn = !xsTurn;
+                    console.log(xsTurn);
+                }
+            }
+        }
+        saveGame();
+        updateStatus(getWinner(squareValues));
     }
 })
