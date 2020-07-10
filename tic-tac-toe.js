@@ -101,9 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
             compTurn();
         }
         saveGame();
-        // squareValues = blankBoard;
-
-
     })
 
     document.getElementById("give-up-button").addEventListener("click", event => {
@@ -131,7 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (winner) {
             return winner;
-            //this code was unreachable: document.getElementById("give-up-button").disabled = true;
         }
         else if (!squares.includes(null)) {
             return "None";
